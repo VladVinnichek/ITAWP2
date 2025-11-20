@@ -1,0 +1,168 @@
+{% extends 'translator/base.html' %}
+
+{% block title %}Переводчик - Англо-русский переводчик{% endblock %}
+
+{% block content %}
+<div id="translate-tab" class="tab-content active">
+    <div class="translator-box">
+        <h2>🔤 Перевод слов</h2>
+        <div class="form-group">
+            <label for="wordInput">Введите английское слово:</label>
+            <input type="text" id="wordInput" class="form-control" placeholder="Например: hello, world, cat..." autocomplete="off">
+        </div>
+        <button onclick="translateWord()" class="btn btn-primary">Перевести</button>
+        
+        <div id="result" class="result"></div>
+    </div>
+</div>
+
+<div id="add-tab" class="tab-content">
+    <div class="translator-box">
+        <h2>➕ Добавить слово в словарь</h2>
+        <div class="form-group">
+            <label for="englishWord">Английское слово:</label>
+            <input type="text" id="englishWord" class="form-control" placeholder="Введите английское слово" autocomplete="off">
+        </div>
+        <div class="form-group">
+            <label for="russianTranslation">Русский перевод:</label>
+            <input type="text" id="russianTranslation" class="form-control" placeholder="Введите русский перевод" autocomplete="off">
+        </div>
+        <button onclick="addNewWord()" class="btn btn-success">Добавить в словарь</button>
+        
+        <div id="addResult" class="result"></div>
+    </div>
+</div>
+
+<!-- Скрытый CSRF токен -->
+{% csrf_token %}
+<script>
+    // Получаем CSRF токен
+    function getCSRFToken() {
+        return document.querySelector('[name=csrfmiddlewaretoken]').value;
+    }
+</script>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function translateWord() {
+    const word = document.getElementById('wordInput').value.trim();
+    const resultDiv = document.getElementById('result');
+    
+    if (!word) {
+        showResult('error', 'Введите слово для перевода');
+        return;
+    }
+    
+    // Показываем загрузку
+    resultDiv.innerHTML = '⏳ Ищем перевод...';
+    resultDiv.className = 'result success';
+    resultDiv.style.display = 'block';
+    
+    // AJAX запрос с CSRF токеном
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/translate/', true);
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+    xhr.setRequestHeader('X-CSRFToken', getCSRFToken());
+    
+    xhr.onload = function() {
+        const response = JSON.parse(xhr.responseText);
+        
+        if (response.success) {
+            let message = `<div class="word-pair">${response.english_word} → ${response.russian_translation}</div>`;
+            if (response.from_simple_dict) {
+                message += '<div style="text-align: center; color: #666; font-size: 0.9em;">📚 Из базового словаря</div>';
+            } else {
+                message += '<div style="text-align: center; color: #666; font-size: 0.9em;">💾 Из базы данных</div>';
+            }
+            showResult('success', message);
+        } else {
+            showResult('error', response.error);
+        }
+    };
+    
+    xhr.onerror = function() {
+        showResult('error', 'Ошибка соединения с сервером');
+    };
+    
+    xhr.send('word=' + encodeURIComponent(word));
+}
+
+function addNewWord() {
+    const englishWord = document.getElementById('englishWord').value.trim();
+    const russianTranslation = document.getElementById('russianTranslation').value.trim();
+    const resultDiv = document.getElementById('addResult');
+    
+    if (!englishWord || !russianTranslation) {
+        showAddResult('error', 'Заполните все поля');
+        return;
+    }
+    
+    // Показываем загрузку
+    resultDiv.innerHTML = '⏳ Добавляем слово...';
+    resultDiv.className = 'result success';
+    resultDiv.style.display = 'block';
+    
+    // AJAX запрос с CSRF токеном
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/add-word/', true);
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+    xhr.setRequestHeader('X-CSRFToken', getCSRFToken());
+    
+    xhr.onload = function() {
+        const response = JSON.parse(xhr.responseText);
+        
+        if (response.success) {
+            showAddResult('success', response.message);
+            // Очищаем поля
+            document.getElementById('englishWord').value = '';
+            document.getElementById('russianTranslation').value = '';
+        } else {
+            showAddResult('error', response.error);
+        }
+    };
+    
+    xhr.onerror = function() {
+        showAddResult('error', 'Ошибка соединения с сервером');
+    };
+    
+    xhr.send('english_word=' + encodeURIComponent(englishWord) + 
+             '&russian_translation=' + encodeURIComponent(russianTranslation));
+}
+
+function showResult(type, message) {
+    const resultDiv = document.getElementById('result');
+    resultDiv.innerHTML = message;
+    resultDiv.className = 'result ' + type;
+    resultDiv.style.display = 'block';
+}
+
+function showAddResult(type, message) {
+    const resultDiv = document.getElementById('addResult');
+    resultDiv.innerHTML = message;
+    resultDiv.className = 'result ' + type;
+    resultDiv.style.display = 'block';
+}
+
+// Обработка нажатия Enter
+document.getElementById('wordInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        translateWord();
+    }
+});
+
+document.getElementById('englishWord').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        addNewWord();
+    }
+});
+
+document.getElementById('russianTranslation').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        addNewWord();
+    }
+});
+</script>
+{% endblock %}
