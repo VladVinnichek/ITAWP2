@@ -1,0 +1,23 @@
+{% extends 'product_catalog/base.html' %}
+
+{% block title %}Удаление продукта - Каталог продуктов{% endblock %}
+
+{% block content %}
+<h2>❌ Удаление продукта</h2>
+
+<div style="background: #f8d7da; padding: 15px; border-radius: 5px; margin: 20px 0;">
+    <h3 style="color: #721c24; margin: 0;">Внимание!</h3>
+    <p style="color: #721c24; margin: 10px 0 0 0;">
+        Вы собираетесь удалить продукт <strong>"{{ product.name }}"</strong> (артикул: {{ product.sku }}).
+        Это действие нельзя отменить.
+    </p>
+</div>
+
+<form method="post">
+    {% csrf_token %}
+    <div style="display: flex; gap: 10px;">
+        <button type="submit" class="btn btn-danger">Да, удалить</button>
+        <a href="{% url 'product_list' %}" class="btn btn-primary">Отмена</a>
+    </div>
+</form>
+{% endblock %}

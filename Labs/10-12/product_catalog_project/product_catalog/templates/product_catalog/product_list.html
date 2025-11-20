@@ -1,0 +1,62 @@
+{% extends 'product_catalog/base.html' %}
+
+{% block title %}Список продуктов - Каталог продуктов{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h2>📦 Все продукты</h2>
+    <a href="{% url 'product_create' %}" class="btn btn-primary">+ Добавить продукт</a>
+</div>
+
+{% if products %}
+    <div class="product-grid">
+        {% for product in products %}
+        <div class="product-card">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+                <div>
+                    <h3 style="margin: 0; color: #333;">{{ product.name }}</h3>
+                    <small style="color: #666;">Артикул: {{ product.sku }}</small>
+                </div>
+                <div style="font-size: 1.3em; color: #e74c3c; font-weight: bold;">
+                    {{ product.price }} руб.
+                </div>
+            </div>
+            
+            <p>{{ product.description|truncatewords:20 }}</p>
+            
+            {% if product.attributes.all %}
+            <div style="margin: 10px 0;">
+                {% for attr in product.attributes.all %}
+                <span class="attribute-badge">
+                    <strong>{{ attr.get_attribute_type_display }}:</strong> {{ attr.value }}
+                </span>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            <div style="color: #666; font-size: 0.9em; margin: 10px 0;">
+                <span style="color: {% if product.status == 'in_stock' %}#27ae60{% elif product.status == 'out_of_stock' %}#e67e22{% else %}#95a5a6{% endif %};">
+                    📊 {{ product.get_status_display }}
+                </span>
+                <span style="margin-left: 15px;">⭐ {{ product.rating }}/5</span>
+                {% if product.category %}
+                <span style="margin-left: 15px;">📁 {{ product.category.name }}</span>
+                {% endif %}
+            </div>
+            
+            <div class="product-actions">
+                <a href="{% url 'product_detail' product.id %}" class="btn btn-primary">Просмотр</a>
+                <a href="{% url 'product_edit' product.id %}" class="btn btn-warning">Редактировать</a>
+                <a href="{% url 'product_delete' product.id %}" class="btn btn-danger" 
+                   onclick="return confirm('Вы уверены, что хотите удалить продукт {{ product.name }}?')">Удалить</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div style="text-align: center; padding: 40px;">
+        <h3>😔 Продукты не найдены</h3>
+        <p>Пока нет добавленных продуктов. <a href="{% url 'product_create' %}">Добавьте первый продукт</a>.</p>
+    </div>
+{% endif %}
+{% endblock %}

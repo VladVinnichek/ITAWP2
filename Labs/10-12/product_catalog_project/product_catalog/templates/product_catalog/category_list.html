@@ -1,0 +1,31 @@
+{% extends 'product_catalog/base.html' %}
+
+{% block title %}Категории - Каталог продуктов{% endblock %}
+
+{% block content %}
+<h2>📁 Категории продуктов</h2>
+
+{% if categories %}
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; margin-top: 20px;">
+        {% for category in categories %}
+        <div style="border: 1px solid #ddd; padding: 15px; border-radius: 8px; background: white;">
+            <h3 style="margin: 0 0 10px 0;">{{ category.name }}</h3>
+            {% if category.description %}
+            <p style="color: #666; margin: 0 0 10px 0;">{{ category.description }}</p>
+            {% endif %}
+            <div style="color: #3498db; font-weight: bold;">
+                Продуктов: {{ category.products.count }}
+            </div>
+            <div style="margin-top: 10px;">
+                <a href="{% url 'product_list' %}" class="btn btn-primary">Смотреть продукты</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div style="text-align: center; padding: 40px;">
+        <h3>📁 Категории не найдены</h3>
+        <p>Пока нет добавленных категорий.</p>
+    </div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends 'product_catalog/base.html' %}
+
+{% block title %}{{ product.name }} - Каталог продуктов{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px;">
+    <div>
+        <h2>{{ product.name }}</h2>
+        <p><strong>Артикул:</strong> {{ product.sku }}</p>
+    </div>
+    <div style="font-size: 1.5em; color: #e74c3c; font-weight: bold;">
+        {{ product.price }} руб.
+    </div>
+</div>
+
+<div class="form-group">
+    <label><strong>Описание:</strong></label>
+    <p>{{ product.description }}</p>
+</div>
+
+{% if product.attributes.all %}
+<div class="form-group">
+    <label><strong>Характеристики:</strong></label>
+    <div>
+        {% for attr in product.attributes.all %}
+        <span class="attribute-badge">
+            <strong>{{ attr.get_attribute_type_display }}:</strong> {{ attr.value }}
+        </span>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
+    <p><strong>📊 Статус:</strong> {{ product.get_status_display }}</p>
+    <p><strong>⭐ Рейтинг:</strong> {{ product.rating }}/5</p>
+    {% if product.category %}
+    <p><strong>📁 Категория:</strong> {{ product.category.name }}</p>
+    {% endif %}
+    <p><strong>📅 Дата добавления:</strong> {{ product.created_at|date:"d.m.Y H:i" }}</p>
+    <p><strong>🔄 Последнее обновление:</strong> {{ product.updated_at|date:"d.m.Y H:i" }}</p>
+</div>
+
+<div style="display: flex; gap: 10px; margin-top: 20px;">
+    <a href="{% url 'product_edit' product.id %}" class="btn btn-warning">Редактировать</a>
+    <a href="{% url 'product_delete' product.id %}" class="btn btn-danger" 
+       onclick="return confirm('Вы уверены, что хотите удалить продукт {{ product.name }}?')">Удалить</a>
+    <a href="{% url 'product_list' %}" class="btn btn-primary">Назад к списку</a>
+</div>
+{% endblock %}
